@@ -1,0 +1,20 @@
+
+.meme-card {
+  max-width: 300px;
+  margin: 2em;
+  float: left;
+}
+
+.meme-header-image {
+  background-image: url('https://imgflip.com/s/meme/Mocking-Spongebob.jpg');
+  background-size: cover;
+}
+
+
+.spacer {
+  flex: 0.96 1 auto;
+} 
+
+::ng-deep.mat-menu-panel {
+  max-width: none !important;
+}

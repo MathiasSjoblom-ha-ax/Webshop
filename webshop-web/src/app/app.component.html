@@ -1,0 +1,62 @@
+<mat-toolbar color="primary">
+  <mat-toolbar-row>
+    <button mat-icon-button>
+      <mat-icon >menu</mat-icon>
+    </button>
+    <h1>MemeWebShop</h1>
+
+    <span class="spacer"></span>
+
+    <div *ngIf="shoppingCart && products">
+      <button mat-icon-button  [matMenuTriggerFor]="menu">
+        {{shoppingCart.cost.total + ' ' + shoppingCart.cost.currency}} € <mat-icon>shopping_cart</mat-icon> 
+      </button>
+  
+      <mat-menu #menu="matMenu" width="353px">
+  
+        <table mat-table [dataSource]="shoppingCart.productItems" width="353px">
+      
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef> Name </th>
+            <td mat-cell *matCellDef="let element"> {{findProduct(element.productId)?.name}} </td>
+          </ng-container>
+        
+          <ng-container matColumnDef="total-price">
+            <th mat-header-cell *matHeaderCellDef> Item Price </th>
+            <td mat-cell *matCellDef="let element"> {{findProduct(element.productId)?.price}} </td>
+          </ng-container>
+        
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef> Amount </th>
+            <td mat-cell *matCellDef="let element"> {{element.amount}} </td>
+          </ng-container>
+        
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+        <br>
+        <p>VAT: {{shoppingCart.cost.tax}} {{shoppingCart.cost.currency}}</p>
+        <p>Total price including VAT: {{shoppingCart.cost.total}} {{shoppingCart.cost.currency}}</p>
+      </mat-menu>
+    </div>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<ng-container *ngIf="products">
+  <mat-card class="meme-card" *ngFor="let product of products">
+    <mat-card-header>
+      <div mat-card-avatar class="meme-header-image"></div>
+      <mat-card-title>{{product.name}}</mat-card-title>
+      <mat-card-subtitle>By MemeMaster ¯\_(ツ)_/¯</mat-card-subtitle>
+    </mat-card-header>
+    <img mat-card-image [src]="product.image">
+    <mat-card-content>
+      <p>
+        {{product.description}}
+      </p>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button (click)="addProductToCart(product)">Order now for only <strong>{{product.price}}€!</strong></button>
+    </mat-card-actions>
+  </mat-card>
+</ng-container>

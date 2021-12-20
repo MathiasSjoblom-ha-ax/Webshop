@@ -1,0 +1,182 @@
+openapi: 3.0.1
+info:
+  title: Webshop API
+  description: Awesome APIs
+  version: 1.0.0
+paths:
+  # See https://swagger.io/docs/specification/data-models/data-types/
+  # Especially string 'pattern' and arrays section
+  # PROTIP: Start with the model. When you have a model whose relations make sense, you can go ahead and create the API operations
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Retrieve all products
+      operationId: getProducts
+      responses:
+        200:
+          description: Products response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+  /shopping-carts:
+    get:
+      tags:
+        - ShoppingCart
+      summary: Retrieve all shopping carts
+      operationId: getCarts
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShoppingCartSummary'
+    post:
+      tags:
+        - ShoppingCart
+      summary: Create a new shopping cart
+      operationId: createCart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingCart'
+        required: true
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartSummary'
+  /shopping-carts/{cart-id}:
+    get:
+      tags:
+        - ShoppingCart
+      summary: Retrieve a specific shopping cart
+      operationId: getCart
+      parameters:
+        - in: path
+          name: cart-id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartSummary'
+    put:
+      tags:
+        - ShoppingCart
+      summary: Update a specific shopping cart
+      operationId: updateCart
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingCart'
+        required: true
+      parameters:
+        - in: path
+          name: cart-id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        200:
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCartSummary'
+components:
+  schemas:
+    Product:
+      type: object
+      description: Representation of a product
+      required:
+        - id
+        - name
+        - price
+        - image
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        price:
+          type: integer
+        description:
+          type: string
+        image:
+          type: string
+          format: uri
+          description: URL to the image
+    ShoppingCart:
+      type: object
+      description: Representation of a shopping cart
+      required:
+        - name
+        - brandings
+      properties:
+        productItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+    ShoppingCartSummary:
+      allOf:
+        - $ref: '#/components/schemas/ShoppingCart'
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+              format: uuid
+            cost:
+              $ref: '#/components/schemas/CostSummary'
+    CostSummary:
+      type: object
+      description: Cost summary
+      required:
+        - total
+        - tax
+        - currency
+      properties:
+        total:
+          type: integer
+          description: Total cost
+        tax:
+          type: integer
+          description: Total tax cost
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$' # ISO_4217 format
+          description: Currency of cart
+    CartItem:
+      type: object
+      description: Item in a shopping cart
+      required:
+        - amount
+        - productId
+      properties:
+        amount:
+          type: integer
+          description: Amount of items
+          minItems: 1
+        productId:
+          type: string
+          description: Id of product
+          format: uuid

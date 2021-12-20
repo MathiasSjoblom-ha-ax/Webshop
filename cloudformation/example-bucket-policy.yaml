@@ -1,0 +1,59 @@
+#
+# This is an example of a BucketPolicy, which utilizes IAM (Identity and Access Management) policies.
+# IAM is the default way of defining access levels of specific users, services etc.
+# This is the same way I have defined your own access to various actions and resources in AWS (Cloudformation, elasticbeanstalk etc.)
+#
+Resources:
+  ExampleBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref YourBucketsLogicalId
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject # This tells us which action we want to allow for users matching this statement. In this case, get objects from it.
+                                 # We can also define things such as s3:DeleteBucket, but we do not want to allow that for our use case.
+            Condition:
+              NotIpAddress:
+                aws:SourceIp:
+                  - 212.17.176.2 # CIDR also permitted here
+                           # Above is a special condition, which we can define if there are exceptions to our access rules.
+
+            Effect: Allow  # Allow or Deny. With Deny, we could also define a public bucket with NotIpAddress as condition for same effect
+
+            Principal: "*" # This is the "user" or "service" trying to get access. Here we allow any type of user access.
+
+            Resource: "arn:aws:s3:::webpage.cloud-ha.com/*"
+                           # This specifies which resources this IAM document should allow access to.
+                           # All you need to know here is that arn:aws:s3:::{BUCKET_NAME}/* is the secret recipe.
+                           # 'arn:aws:s3:::webpage.cloud-ha.com' defines which bucket, the appended /* means all resources within that bucket.
+
+
+
+# If we were to consider being a tad bit racist, we could define a document like the list below.
+# This IAM statement will allow full access to anyone, as long as they are NOT connecting from Ålcom's office.
+# From Ålcom office, they can only access a error page. #EvilLaughter
+
+
+          # First one only lets Alcom office access to an error page and a 'sad-smiley.jpg' that exists on bucket britta.cloud-ha.com
+          - Action: s3:GetObject
+            Condition:
+              IpAddress:
+                aws:SourceIp:
+                  - 212.17.176.2
+            Effect: Allow
+            Principal: "*"
+            Resource:
+              - "arn:aws:s3:::britta.cloud-ha.com/error.html"
+              - "arn:aws:s3:::britta.cloud-ha.com/sad-smiley.jpg"
+
+          # Second one Allows access to all files for anyone not connecting from Alcom office.
+          - Action: s3:GetObject
+            Condition:
+              NotIpAddress:
+                aws:SourceIp:
+                  - 212.17.176.2
+            Effect: Allow
+            Principal: "*"
+            Resource:
+              - "arn:aws:s3:::britta.cloud-ha.com/error.html"
+              - "arn:aws:s3:::britta.cloud-ha.com/sad-smiley.jpg"

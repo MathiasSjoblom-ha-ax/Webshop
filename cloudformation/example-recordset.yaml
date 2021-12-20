@@ -1,0 +1,12 @@
+# This is an example recordset for a bucket hosted in us-east-1 region
+# NOTE: Your own bucket is located in eu-north-1, so AliasTarget properties needs to be found in documentation and changed.
+Resources:
+  ExampleRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: webpage.cloud-ha.com
+      Type: A
+      AliasTarget: # See S3 sections in https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget-1.html
+        DNSName: s3-website-us-east-1.amazonaws.com # DNS name for S3 in us-east-1. This comes from official documentation
+        HostedZoneId: Z3AQBSTGFYJSTF                # HostedZoneId for the DNSName above. This also comes from official documentation
+      HostedZoneId: Z0413857YT73A0A8FRFF            # This is the HostedZoneId for the cloud-ha.com domain, this is the same as from previous assignment

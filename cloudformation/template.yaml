@@ -1,0 +1,80 @@
+Parameters:
+  GroupName:
+    Type: String
+    Default: mathiass
+    Description: The AWS account name of the user
+Resources:
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${GroupName}.cloud-ha.com'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+
+# We need to define a AWS::S3::Bucket to serve our website.
+# TIP: See output from the first "storage-bucket-infra" project.
+# We can basically reuse that code, with only small modifications to properties
+# BucketName, PublicAccessBlockConfiguration and WebsiteConfiguration
+#
+# We can also find a lot of examples if we google "use S3 bucket as website cloudformation"
+#
+# Note:
+# Since bucket content should be accessible only to the specific CIDR, we need to restrict access with the PublicAccessBlockConfiguration property.
+# However, ONLY set BlockPublicAcls and IgnorePublicAcls sub-attributes.
+# This will essentially make the bucket private, but in the next stage we will define access rules to a specific CIDR range.
+
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Action: s3:GetObject # This tells us which action we want to allow for users matching this statement. In this case, get objects from it.
+            # We can also define things such as s3:DeleteBucket, but we do not want to allow that for our use case.
+            Condition:
+              NotIpAddress:
+                aws:SourceIp:
+                  - 128.0.0.0/1 # CIDR also permitted here
+                  # Above is a special condition, which we can define if there are exceptions to our access rules.
+
+            Effect: Allow  # Allow or Deny. With Deny, we could also define a public bucket with NotIpAddress as condition for same effect
+
+            Principal: "*" # This is the "user" or "service" trying to get access. Here we allow any type of user access.
+
+            Resource: arn:aws:s3:::mathiass-storage.cloud-ha.com/*
+            # This specifies which resources this IAM document should allow access to.
+            # All you need to know here is that arn:aws:s3:::{BUCKET_NAME}/* is the secret recipe.
+            # 'arn:aws:s3:::webpage.cloud-ha.com' defines which bucket, the appended /* means all resources within that bucket.
+
+
+# Make sense of the example policy found in the same directory as this file first.
+# Documentation of conditions such as Ip Address can be found here: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_condition_operators.html#Conditions_IPAddress
+#
+# We basically wants a document that defines: ANY user, can perform the action s3:GetObject, on any resource existing in your bucket,
+# As long as their IP address matches CIDR 128.0.0.0/1
+
+
+  FrontendRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: mathiass.cloud-ha.com
+      Type: A
+      AliasTarget: # See S3 sections in https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget-1.html
+        DNSName: s3-website.eu-north-1.amazonaws.com # DNS name for S3 in us-east-1. This comes from official documentation
+        HostedZoneId: Z3BAZG2TWCNX0D               # HostedZoneId for the DNSName above. This also comes from official documentation
+      HostedZoneId: Z2BJ6XQ5FK7U4H            # This is the HostedZoneId for the cloud-ha.com domain, this is the same as from previous assignment
+# Like the last time, we need to configure a record set for our application.
+# However, it is a bit different since we cannot get a IP address for an S3 bucket (Because s3 buckets doesn't have one single dedicated server).
+# This time, we need properties Name, Type, AliasTarget and HostedZoneId (Which should be the same as last time)
+#
+#
+# Important: the Name you specify, ({GROUP_NAME}.cloud-ha.com) must also be used as name for your S3 bucket.
+# Reason: We are basically connecting to http://s3-website.eu-north-1.amazonaws.com but doing so through http://example.cloud-ha.com,
+# AWS can only identify the target bucket if that is also named the same as hostname which is example.cloud-ha.com

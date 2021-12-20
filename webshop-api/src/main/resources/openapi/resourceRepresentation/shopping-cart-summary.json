@@ -1,0 +1,14 @@
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "productItems": [
+    {
+      "amount": 1,
+      "productId": "23b1753b-557e-4c16-8823-33584823e500"
+    }
+  ],
+  "cost": {
+    "total": 186,
+    "tax": 36,
+    "currency": "EUR"
+  }
+}

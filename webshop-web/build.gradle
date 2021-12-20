@@ -1,0 +1,52 @@
+
+buildscript {
+    repositories {
+        repositories {
+            mavenCentral()
+            maven { url 'https://plugins.gradle.org/m2/' }
+        }
+    }
+}
+
+apply plugin: 'java'
+
+processResources {
+    dependsOn "buildAngular"
+}
+
+task run(type: Exec) {
+  group = "application"
+  if (System.properties['os.name'].toLowerCase().contains('windows')) {
+    commandLine 'cmd', '/c', 'ng serve'
+  } else {
+    commandLine 'ng serve'
+  }
+}
+
+task buildAngular(type:Exec) {
+    dependsOn "installAngular"
+    workingDir "$projectDir"
+    inputs.dir "$projectDir"
+    // Add task to the standard build group
+    group = BasePlugin.BUILD_GROUP
+    // ng doesn't exist as a file in windows -> ng.cmd
+    def command;
+    if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")){
+      command = "ng.cmd"
+    } else {
+      command = "$projectDir/node_modules/@angular/cli/bin/ng"
+    }
+    commandLine command, "build", "--outputPath=build/dist", "--configuration=production"
+}
+
+task installAngular(type:Exec) {
+    workingDir "$projectDir"
+    inputs.dir "$projectDir"
+    group = BasePlugin.BUILD_GROUP
+    if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")){
+        commandLine "npm.cmd", "install"
+    } else {
+        commandLine "npm", "install"
+    }
+}
+

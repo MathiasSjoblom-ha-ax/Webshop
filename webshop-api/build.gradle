@@ -1,0 +1,78 @@
+plugins {
+    id 'org.springframework.boot' version '2.6.0'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'org.openapi.generator' version "4.3.1"
+    id 'java'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+version = '1.0.0-SNAPSHOT'
+group = 'ax.ha.clouddevelopment'
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+
+    implementation group: 'io.swagger', name: 'swagger-annotations', version: '1.6.2'
+    implementation group: 'org.openapitools', name: 'jackson-databind-nullable', version: '0.2.1'
+    implementation group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
+    implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.5.12'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.6.0'
+    implementation group: 'org.springframework', name: 'spring-web', version: '5.3.13'
+
+    developmentOnly 'org.springframework.boot:spring-boot-devtools:2.6.0'
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test:2.6.0') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "${buildDir.absolutePath}/generated/src/main/java/"
+        }
+    }
+    generated {
+        java.srcDir "${buildDir}/generated/src/main/java/"
+    }
+}
+
+task generateModel(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask){
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/resources/openapi/webshop-openapi.yaml".toString()
+    outputDir = "$buildDir/generated".toString()
+    apiPackage = "ax.ha.clouddevelopment.webshopapi.interfaces.v1.webshop"
+    modelPackage = "ax.ha.clouddevelopment.webshopapi.interfaces.v1.webshop.model"
+    generateApiDocumentation = false
+    configOptions = [
+            interfaceOnly: "true",
+            skipDefaultInterface: "true"
+    ]
+}
+
+// Make sure we always generate Java from OpenAPI
+compileJava {
+    dependsOn generateModel
+    delete fileTree('build/generated/src') {
+        include '**/ApiUtil.java'
+    }
+
+    source += sourceSets.generated.java
+}

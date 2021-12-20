@@ -1,0 +1,9 @@
+
+# Default EBS application port is 5000
+server:
+  port: 5000
+  ssl:
+    enabled: false
+springdoc:
+  swagger-ui:
+    url: /openapi/webshop-openapi.yaml

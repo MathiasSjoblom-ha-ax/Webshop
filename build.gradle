@@ -1,0 +1,13 @@
+plugins {
+    id 'java'
+}
+
+subprojects {
+    version = '1.0.0-SNAPSHOT'
+    group = 'ax.ha.clouddevelopment'
+    sourceCompatibility = '1.8'
+
+    repositories {
+        mavenCentral()
+    }
+}
